@@ -28,7 +28,8 @@ function App() {
   }
 
   useEffect(() => {
-    loadTasks();
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  loadTasks();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,7 +49,7 @@ function App() {
   }
 
   async function handleToggle(task: Task) {
-    await updateTask(task.id, !Boolean(task.completed));
+    await updateTask(task.id, task.completed !== 1);
     await loadTasks();
   }
 
@@ -58,7 +59,7 @@ function App() {
   }
 
   const completedCount = tasks.filter(
-    (task) => Boolean(task.completed)
+    (task) => task.completed === 1
   ).length;
 
   return (
@@ -87,13 +88,13 @@ function App() {
           <li key={task.id}>
             <input
               type="checkbox"
-              checked={Boolean(task.completed)}
+              checked={task.completed === 1}
               onChange={() => handleToggle(task)}
             />
 
             <span
               style={{
-                textDecoration: task.completed
+                textDecoration: task.completed === 1
                   ? "line-through"
                   : "none"
               }}
