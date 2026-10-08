@@ -49,9 +49,9 @@ describe("Task Manager", () => {
 
     render(<App />);
 
-    const input = screen.getByPlaceholderText("Enter a task...");
+    const input = screen.getByPlaceholderText("What needs to be done?");
     const button = screen.getByRole("button", {
-      name: "Add"
+      name: "Add task"
     });
 
     fireEvent.change(input, {

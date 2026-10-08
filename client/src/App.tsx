@@ -5,6 +5,7 @@ import {
   updateTask,
   deleteTask
 } from "./api";
+import "./App.css";
 
 interface Task {
   id: number;
@@ -23,91 +24,151 @@ function App() {
       const data = await getTasks();
       setTasks(data);
     } catch {
-      setError("Failed to load tasks");
+      setError("Unable to load your tasks.");
     }
   }
 
   useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  loadTasks();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadTasks();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!title.trim()) {
-      return;
-    }
+    if (!title.trim()) return;
 
     try {
+      setError("");
       await createTask(title);
       setTitle("");
       await loadTasks();
     } catch {
-      setError("Failed to create task");
+      setError("Unable to create the task.");
     }
   }
 
   async function handleToggle(task: Task) {
-    await updateTask(task.id, task.completed !== 1);
-    await loadTasks();
+    try {
+      await updateTask(task.id, task.completed !== 1);
+      await loadTasks();
+    } catch {
+      setError("Unable to update the task.");
+    }
   }
 
   async function handleDelete(id: number) {
-    await deleteTask(id);
-    await loadTasks();
+    try {
+      await deleteTask(id);
+      await loadTasks();
+    } catch {
+      setError("Unable to delete the task.");
+    }
   }
 
   const completedCount = tasks.filter(
     (task) => task.completed === 1
   ).length;
 
+  const remainingCount = tasks.length - completedCount;
+
   return (
-    <main style={{ maxWidth: 600, margin: "50px auto", padding: 20 }}>
-      <h1>Task Manager</h1>
+    <main className="app-shell">
+      <section className="task-card">
+        <header className="header">
+          <div>
+            <p className="eyebrow">PERSONAL PRODUCTIVITY</p>
+            <h1>Task Manager</h1>
+            <p className="subtitle">
+              Keep track of what needs to get done.
+            </p>
+          </div>
 
-      <p>
-        {tasks.length} tasks · {completedCount} completed
-      </p>
+          <div className="header-icon">✓</div>
+        </header>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter a task..."
-          maxLength={100}
-        />
+        <section className="stats">
+          <div className="stat">
+            <span className="stat-number">{tasks.length}</span>
+            <span className="stat-label">Total</span>
+          </div>
 
-        <button type="submit">Add</button>
-      </form>
+          <div className="stat">
+            <span className="stat-number">{remainingCount}</span>
+            <span className="stat-label">Remaining</span>
+          </div>
 
-      {error && <p>{error}</p>}
+          <div className="stat">
+            <span className="stat-number">{completedCount}</span>
+            <span className="stat-label">Completed</span>
+          </div>
+        </section>
 
-      <ul>
-        {tasks.map((task) => (
-          <li key={task.id}>
-            <input
-              type="checkbox"
-              checked={task.completed === 1}
-              onChange={() => handleToggle(task)}
-            />
+        <form className="task-form" onSubmit={handleSubmit}>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="What needs to be done?"
+            maxLength={100}
+            aria-label="Task title"
+          />
 
-            <span
-              style={{
-                textDecoration: task.completed === 1
-                  ? "line-through"
-                  : "none"
-              }}
-            >
-              {task.title}
-            </span>
+          <button type="submit">Add task</button>
+        </form>
 
-            <button onClick={() => handleDelete(task.id)}>
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+        {error && <div className="error">{error}</div>}
+
+        <section className="task-list">
+          {tasks.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">✓</div>
+              <h2>No tasks yet</h2>
+              <p>Add your first task above and get things moving.</p>
+            </div>
+          ) : (
+            tasks.map((task) => (
+              <article
+                className={`task ${
+                  task.completed === 1 ? "completed" : ""
+                }`}
+                key={task.id}
+              >
+                <label className="task-content">
+                  <input
+                    type="checkbox"
+                    checked={task.completed === 1}
+                    onChange={() => handleToggle(task)}
+                  />
+
+                  <span className="checkmark">
+                    {task.completed === 1 ? "✓" : ""}
+                  </span>
+
+                  <span className="task-title">{task.title}</span>
+                </label>
+
+                <button
+                  className="delete-button"
+                  onClick={() => handleDelete(task.id)}
+                  aria-label={`Delete ${task.title}`}
+                >
+                  ×
+                </button>
+              </article>
+            ))
+          )}
+        </section>
+
+        {tasks.length > 0 && (
+          <footer className="footer">
+            {completedCount === tasks.length
+              ? "🎉 Everything is complete!"
+              : `${remainingCount} ${
+                  remainingCount === 1 ? "task" : "tasks"
+                } left to finish`}
+          </footer>
+        )}
+      </section>
     </main>
   );
 }
